@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Config.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.config</a> &gt; <span class="el_source">Config.java</span></div><h1>Config.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.config;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+
+
+@EnableKafka
+@Configuration
+<span class="fc" id="L24">public class Config {</span>
+	
+	@Value(value=&quot;${kafka.bootstrapAddress}&quot;)
+	private String bootstrapAddress;
+	
+	@Value(value=&quot;${group.id}&quot;)
+	private String groupId;
+	
+	
+	
+	/*@Autowired
+	KafkaTemplate&lt;String, String&gt; kafkaTemplate;*/
+	
+	@Bean
+	public ConsumerFactory&lt;String, String&gt; consumerFactory(){
+<span class="fc" id="L39">		Map&lt;String,Object&gt; properties = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L40">		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);</span>
+<span class="fc" id="L41">		properties.put(ConsumerConfig.GROUP_ID_CONFIG, &quot;mba-group&quot;);</span>
+<span class="fc" id="L42">		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);</span>
+<span class="fc" id="L43">		properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);</span>
+<span class="fc" id="L44">		return new DefaultKafkaConsumerFactory&lt;&gt;(properties);</span>
+	}
+	
+	
+	
+	@Bean
+	public ConcurrentKafkaListenerContainerFactory&lt;String, String&gt; kafkaListenerConatainerFactory(){
+<span class="fc" id="L51">		ConcurrentKafkaListenerContainerFactory&lt;String , String&gt; factory= new ConcurrentKafkaListenerContainerFactory&lt;&gt;() ;</span>
+<span class="fc" id="L52">		factory.setConsumerFactory(consumerFactory());</span>
+		
+<span class="fc" id="L54">		return factory;</span>
+	}
+	
+	
+	
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

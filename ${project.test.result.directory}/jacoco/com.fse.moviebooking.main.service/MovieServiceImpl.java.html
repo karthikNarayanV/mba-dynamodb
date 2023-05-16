@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MovieServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.main.service</a> &gt; <span class="el_source">MovieServiceImpl.java</span></div><h1>MovieServiceImpl.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.main.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Service;
+
+import com.fse.moviebooking.exception.MovieNotFoundException;
+import com.fse.moviebooking.main.model.Movie;
+import com.fse.moviebooking.main.model.Theatre;
+import com.fse.moviebooking.main.model.TicketDetail;
+import com.fse.moviebooking.main.repository.MovieRepository;
+import com.mongodb.MongoWriteException;
+import com.mongodb.WriteError;
+
+@Service
+<span class="fc" id="L26">public class MovieServiceImpl implements MovieService {</span>
+
+	@Autowired
+	private MovieRepository movieRepository;
+
+	public String addMovie(Movie movie) throws Exception {
+<span class="fc bfc" id="L32" title="All 2 branches covered.">		for (Theatre theatre : movie.getTheatres()) {</span>
+<span class="fc" id="L33">			IntStream stream = IntStream.iterate(1, i -&gt; i + 1).limit(theatre.getNoOfTickets());</span>
+<span class="fc" id="L34">			List&lt;Integer&gt; seatNumbers = stream.collect(ArrayList&lt;Integer&gt;::new, ArrayList::add, ArrayList::addAll);</span>
+<span class="fc" id="L35">			theatre.setSeatNumbers(seatNumbers);</span>
+<span class="fc" id="L36">			theatre.setStatus(&quot;BOOK ASAP&quot;);</span>
+<span class="fc" id="L37">		}</span>
+		try {
+<span class="fc" id="L39">			movieRepository.insert(movie);</span>
+<span class="fc" id="L40">		} catch (MongoWriteException e) {</span>
+<span class="fc" id="L41">			throw new Exception();</span>
+<span class="fc" id="L42">		}</span>
+<span class="fc" id="L43">		return &quot;Created&quot;;</span>
+
+	}
+	
+	@Override
+	public List&lt;Movie&gt; getAllMovies() {
+<span class="fc" id="L49">		return movieRepository.findAll();</span>
+	}
+	
+	@Override
+	public Movie getMovie(String movieName) {
+<span class="fc" id="L54">		Optional&lt;Movie&gt; result = movieRepository.findById(movieName);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">		if (result.isEmpty())</span>
+<span class="nc" id="L56">			throw new MovieNotFoundException(&quot;Movie Not Exists&quot;);</span>
+<span class="fc" id="L57">		Movie movie = result.get();</span>
+<span class="fc" id="L58">		return movie;</span>
+	}
+
+
+	@Override
+	public Movie getMovieByMovieNameAndTheatreName(String movieName, String theatreName) {
+<span class="fc" id="L64">		Optional&lt;Movie&gt; response = Optional.ofNullable(movieRepository.findByMovieNameAndTheatreName(movieName, theatreName));</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">		if (response.isEmpty())</span>
+<span class="nc" id="L66">			throw new MovieNotFoundException(&quot;Movie Not Exists&quot;);</span>
+<span class="fc" id="L67">		return response.get();</span>
+	}
+
+	@Override
+	public String updateMovieTickets(String movieName, String theatreName, int tickets, List&lt;Integer&gt; seatNumbers,
+			String status) {
+<span class="fc" id="L73">		movieRepository.updateNoOfTickets(movieName, theatreName, tickets);</span>
+<span class="fc" id="L74">		movieRepository.updateSeatNumbers(movieName, theatreName, seatNumbers);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		if (status != null)</span>
+<span class="fc" id="L76">			movieRepository.updateStatus(movieName, theatreName, status);</span>
+<span class="fc" id="L77">		return &quot;Updated&quot;;</span>
+
+	}
+
+	public void updateMovieTicketStatus(String movieName, String theatreName, String status) {
+<span class="fc" id="L82">		movieRepository.updateStatus(movieName, theatreName, status);</span>
+<span class="fc" id="L83">	}</span>
+
+	public void deleteMovieById(String movieName) {
+<span class="fc" id="L86">		movieRepository.deleteById(movieName);</span>
+<span class="fc" id="L87">	}</span>
+
+	public void deleteMovieByTheatre(String movieName, String theatreName) {
+<span class="fc" id="L90">		movieRepository.deleteMovieByTheatre(movieName, theatreName);</span>
+<span class="fc" id="L91">	}</span>
+
+	@KafkaListener(topics = &quot;set-status&quot;, groupId = &quot;mba-group&quot;, containerFactory = &quot;kafkaListenerContainerFactory&quot;)
+	public void consume(String message) {
+<span class="fc" id="L95">		String[] data = message.split(&quot;:&quot;);</span>
+<span class="fc" id="L96">		movieRepository.updateStatus(data[0], data[1], data[2]);</span>
+<span class="fc" id="L97">	}</span>
+
+	@KafkaListener(topics = &quot;read-available-tickets&quot;, groupId = &quot;mb-group&quot;, containerFactory = &quot;replyKafkaListenerConatainerFactory&quot;)
+	@SendTo(&quot;read-available-tickets-redirect&quot;)
+	public TicketDetail ticketDetail(TicketDetail request) {
+<span class="fc" id="L102">		Optional&lt;Movie&gt; resultMovie = Optional.ofNullable(movieRepository.findByMovieNameAndTheatreName(request.getMovieName(), request.getTheatreName()));</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">		if(resultMovie.isEmpty()) return request;</span>
+<span class="fc" id="L104">		Movie movie=resultMovie.get();</span>
+<span class="fc" id="L105">		Optional&lt;Theatre&gt; result = movie.getTheatres().stream()</span>
+<span class="fc" id="L106">				.filter(t -&gt; t.getTheatreName().equals(request.getTheatreName()))</span>
+<span class="pc" id="L107">				.collect(Collectors.reducing((a, b) -&gt; null));</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">		if(result.isEmpty()) return request;</span>
+<span class="fc" id="L109">		request.setAvailable(result.get().getNoOfTickets());</span>
+<span class="fc" id="L110">		return request;</span>
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KafkaConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.config</a> &gt; <span class="el_source">KafkaConfig.java</span></div><h1>KafkaConfig.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.config;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
+
+import com.fse.moviebooking.main.model.TicketDetail;
+
+@Configuration
+<span class="fc" id="L30">public class KafkaConfig {</span>
+	
+	@Value(value=&quot;${kafka.bootstrapAddress}&quot;)
+	private String bootstrapAddress;
+	
+	
+	
+	@Bean
+	public ProducerFactory&lt;String, String&gt; producerFactory(){
+<span class="fc" id="L39">		Map&lt;String,Object&gt; properties = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L40">		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);</span>
+<span class="fc" id="L41">		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);</span>
+<span class="fc" id="L42">		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);</span>
+<span class="fc" id="L43">		return new DefaultKafkaProducerFactory&lt;&gt;(properties);</span>
+	}
+	
+	@Bean
+	public ProducerFactory&lt;String, TicketDetail&gt; pf(){
+<span class="fc" id="L48">		Map&lt;String,Object&gt; properties = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L49">		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);</span>
+<span class="fc" id="L50">		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);</span>
+<span class="fc" id="L51">		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);</span>
+<span class="fc" id="L52">		return new DefaultKafkaProducerFactory&lt;&gt;(properties);</span>
+	}
+	
+	@Bean
+	public KafkaTemplate&lt;String, String&gt; kafkaTemplate(){
+<span class="fc" id="L57">		return new KafkaTemplate&lt;&gt;(producerFactory());</span>
+	}
+	
+	@Bean
+	public KafkaTemplate&lt;String, TicketDetail&gt; kt(){
+<span class="fc" id="L62">		return new KafkaTemplate&lt;&gt;(pf());</span>
+	}
+	
+	@Bean
+	public ReplyingKafkaTemplate&lt;String, TicketDetail,TicketDetail&gt; replyKafkaTemplate(ProducerFactory&lt;String, TicketDetail&gt; pf,KafkaMessageListenerContainer&lt;String,TicketDetail&gt; lc){
+<span class="fc" id="L67">		ReplyingKafkaTemplate&lt;String, TicketDetail,TicketDetail&gt; replyingKafkaTemplate = new ReplyingKafkaTemplate&lt;&gt;(pf,lc);</span>
+<span class="fc" id="L68">		replyingKafkaTemplate.setSharedReplyTopic(true);</span>
+		
+<span class="fc" id="L70">		return replyingKafkaTemplate;</span>
+	}
+	
+	@Bean
+	  public Map&lt;String, Object&gt; consumerConfigs() {
+<span class="fc" id="L75">	    Map&lt;String, Object&gt; props = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L76">	    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapAddress);</span>
+<span class="fc" id="L77">	    props.put(ConsumerConfig.GROUP_ID_CONFIG, &quot;mb-group&quot;);</span>
+<span class="fc" id="L78">	    return props;</span>
+	  }
+	
+	@Bean
+	public ConsumerFactory&lt;String, TicketDetail&gt; consumerFactorySr(){
+<span class="fc" id="L83">		return new DefaultKafkaConsumerFactory&lt;&gt;(consumerConfigs(),new StringDeserializer(),new JsonDeserializer&lt;&gt;(TicketDetail.class));</span>
+		
+	}
+	
+	
+	 @Bean
+	  public KafkaListenerContainerFactory&lt;ConcurrentMessageListenerContainer&lt;String, TicketDetail&gt;&gt; replyKafkaListenerConatainerFactory() {
+<span class="fc" id="L90">	    ConcurrentKafkaListenerContainerFactory&lt;String, TicketDetail&gt; factory = new ConcurrentKafkaListenerContainerFactory&lt;&gt;();</span>
+<span class="fc" id="L91">	    factory.setConsumerFactory(consumerFactorySr());</span>
+<span class="fc" id="L92">	    factory.setReplyTemplate(kt());</span>
+	    
+<span class="fc" id="L94">	    return factory;</span>
+	  }
+	
+	@Bean
+	  public KafkaMessageListenerContainer&lt;String, TicketDetail&gt; replyContainer(ConsumerFactory&lt;String, TicketDetail&gt; cf) {
+<span class="fc" id="L99">	        ContainerProperties containerProperties = new ContainerProperties(&quot;read-available-tickets-redirect&quot;,&quot;read-booked-redirect&quot;);</span>
+<span class="fc" id="L100">	        return new KafkaMessageListenerContainer&lt;&gt;(cf, containerProperties);</span>
+	    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

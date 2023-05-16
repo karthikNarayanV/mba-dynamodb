@@ -1,0 +1,13 @@
+com.fse.moviebooking
+com.fse.moviebooking.config
+com.fse.moviebooking.controller
+com.fse.moviebooking.exception
+com.fse.moviebooking.main.controller
+com.fse.moviebooking.main.input
+com.fse.moviebooking.main.kafka
+com.fse.moviebooking.main.model
+com.fse.moviebooking.main.repository
+com.fse.moviebooking.main.service
+com.fse.moviebooking.model
+com.fse.moviebooking.repository
+com.fse.moviebooking.service

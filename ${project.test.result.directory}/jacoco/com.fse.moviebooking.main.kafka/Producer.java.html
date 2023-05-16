@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Producer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.main.kafka</a> &gt; <span class="el_source">Producer.java</span></div><h1>Producer.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.main.kafka;
+
+import java.util.concurrent.TimeUnit;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.requestreply.RequestReplyFuture;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import com.fse.moviebooking.main.model.TicketDetail;
+
+
+@Component
+public class Producer {
+
+<span class="fc" id="L26">	private  static final Logger log = LoggerFactory.getLogger(Producer.class);</span>
+	
+	@Autowired
+	private final KafkaTemplate&lt;String, String&gt; kafkaTemplate;
+	
+	@Autowired
+    private ReplyingKafkaTemplate&lt;String, TicketDetail, TicketDetail&gt; template;
+
+<span class="fc" id="L34">	public Producer(KafkaTemplate&lt;String, String&gt; kafkaTemplate) {</span>
+<span class="fc" id="L35">		this.kafkaTemplate = kafkaTemplate;</span>
+<span class="fc" id="L36">	}</span>
+	
+	public void sendMessage(String movieName, String theatreName,String status) {
+<span class="nc" id="L39">		String topicName=&quot;set-status&quot;;</span>
+<span class="nc" id="L40">		String message=movieName+&quot;:&quot;+theatreName+&quot;:&quot;+status;</span>
+<span class="nc" id="L41">		ListenableFuture&lt;SendResult&lt;String,String&gt;&gt; future = kafkaTemplate.send(topicName, message);</span>
+<span class="nc" id="L42">		future.addCallback(new ListenableFutureCallback&lt;SendResult&lt;String,String&gt;&gt;() {</span>
+
+			@Override
+			public void onSuccess(SendResult&lt;String, String&gt; result) {
+<span class="nc" id="L46">				log.info(&quot;Sent Message Successfully&quot;);</span>
+<span class="nc" id="L47">			}</span>
+
+			@Override
+			public void onFailure(Throwable ex) {
+<span class="nc" id="L51">				log.error(&quot;failed to send message&quot;, ex);</span>
+				
+<span class="nc" id="L53">			}</span>
+		});
+		
+		
+		
+<span class="nc" id="L58">	}</span>
+	
+	public TicketDetail kafkaRequestReply(String topicName,TicketDetail request) throws Exception {
+<span class="nc" id="L61">		String replyTopicName=topicName+&quot;-redirect&quot;;</span>
+<span class="nc" id="L62">		System.out.println(topicName);</span>
+<span class="nc" id="L63">		ProducerRecord&lt;String, TicketDetail&gt; record = new ProducerRecord&lt;String,TicketDetail&gt;(topicName, request);System.out.println(&quot;Sent PR&quot;);</span>
+<span class="nc" id="L64">		record.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, replyTopicName.getBytes()));</span>
+<span class="nc" id="L65">		System.out.println(record);</span>
+<span class="nc" id="L66">        RequestReplyFuture&lt;String, TicketDetail, TicketDetail&gt; replyFuture = template.sendAndReceive(record);System.out.println(&quot;Sent RRF&quot;);</span>
+<span class="nc" id="L67">        System.out.println(replyFuture);</span>
+<span class="nc" id="L68">        SendResult&lt;String, TicketDetail&gt; sendResult = replyFuture.getSendFuture().get();System.out.println(&quot;Sent SR&quot;);</span>
+<span class="nc" id="L69">        sendResult.getProducerRecord().headers().forEach(header -&gt; System.out.println(header.key() + &quot;:&quot; + header.value().toString()));</span>
+<span class="nc" id="L70">        System.out.println(sendResult);</span>
+<span class="nc" id="L71">        ConsumerRecord&lt;String, TicketDetail&gt; consumerRecord = replyFuture.get(100000,TimeUnit.SECONDS);System.out.println(&quot;Sent CR&quot;);</span>
+        
+<span class="nc" id="L73">        System.out.println(consumerRecord.value().toString());</span>
+<span class="nc" id="L74">        TicketDetail reply = consumerRecord.value();</span>
+        
+<span class="nc" id="L76">        return reply;</span>
+    }
+	
+	
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

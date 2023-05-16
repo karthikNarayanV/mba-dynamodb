@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>User.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.model</a> &gt; <span class="el_source">User.java</span></div><h1>User.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = &quot;User&quot;)
+public class User {
+
+    private String firstName;
+    private String lastName;
+    @Indexed(unique = true)
+    private String email;
+    @Id
+    private String loginId;
+    private String password;
+    private String contactNumber;
+
+    public String getFirstName() {
+<span class="nc" id="L20">        return firstName;</span>
+    }
+
+    public void setFirstName(String firstName) {
+<span class="nc" id="L24">        this.firstName = firstName;</span>
+<span class="nc" id="L25">    }</span>
+
+    public String getLastName() {
+<span class="nc" id="L28">        return lastName;</span>
+    }
+
+    public void setLastName(String lastName) {
+<span class="nc" id="L32">        this.lastName = lastName;</span>
+<span class="nc" id="L33">    }</span>
+
+    public String getEmail() {
+<span class="nc" id="L36">        return email;</span>
+    }
+
+    public void setEmail(String email) {
+<span class="nc" id="L40">        this.email = email;</span>
+<span class="nc" id="L41">    }</span>
+
+    public String getLoginId() {
+<span class="nc" id="L44">        return loginId;</span>
+    }
+
+    public void setLoginId(String loginId) {
+<span class="nc" id="L48">        this.loginId = loginId;</span>
+<span class="nc" id="L49">    }</span>
+
+    public String getPassword() {
+<span class="nc" id="L52">        return password;</span>
+    }
+
+    public void setPassword(String password) {
+<span class="nc" id="L56">        this.password = password;</span>
+<span class="nc" id="L57">    }</span>
+
+    public String getContactNumber() {
+<span class="nc" id="L60">        return contactNumber;</span>
+    }
+
+    public void setContactNumber(String contactNumber) {
+<span class="nc" id="L64">        this.contactNumber = contactNumber;</span>
+<span class="nc" id="L65">    }</span>
+
+<span class="nc" id="L67">    public User(String firstName, String lastName, String email, String loginId, String password, String contactNumber) {</span>
+<span class="nc" id="L68">        this.firstName = firstName;</span>
+<span class="nc" id="L69">        this.lastName = lastName;</span>
+<span class="nc" id="L70">        this.email = email;</span>
+<span class="nc" id="L71">        this.loginId = loginId;</span>
+<span class="nc" id="L72">        this.password = password;</span>
+<span class="nc" id="L73">        this.contactNumber = contactNumber;</span>
+<span class="nc" id="L74">    }</span>
+
+<span class="nc" id="L76">    public User() {</span>
+<span class="nc" id="L77">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L81">        return &quot;User{&quot; +</span>
+                &quot;firstName='&quot; + firstName + '\'' +
+                &quot;, lastName='&quot; + lastName + '\'' +
+                &quot;, email='&quot; + email + '\'' +
+                &quot;, loginId='&quot; + loginId + '\'' +
+                &quot;, password='&quot; + password + '\'' +
+                &quot;, contactNumber='&quot; + contactNumber + '\'' +
+                '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

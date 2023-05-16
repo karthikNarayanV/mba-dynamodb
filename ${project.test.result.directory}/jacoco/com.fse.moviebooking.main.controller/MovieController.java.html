@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MovieController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.main.controller</a> &gt; <span class="el_source">MovieController.java</span></div><h1>MovieController.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.main.controller;
+
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.annotation.security.RolesAllowed;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fse.moviebooking.exception.MovieNotFoundException;
+import com.fse.moviebooking.main.input.MovieInput;
+import com.fse.moviebooking.main.input.TicketInput;
+import com.fse.moviebooking.main.kafka.Producer;
+import com.fse.moviebooking.main.model.Movie;
+import com.fse.moviebooking.main.model.Theatre;
+import com.fse.moviebooking.main.model.Ticket;
+import com.fse.moviebooking.main.model.TicketDetail;
+import com.fse.moviebooking.main.service.MovieServiceImpl;
+import com.fse.moviebooking.main.service.TicketServiceImpl;
+
+@RestController
+public class MovieController {
+
+	@Autowired
+	private MovieServiceImpl movieService;
+	
+	@Autowired 
+	private TicketServiceImpl ticketService;
+	
+	private final Producer producer;
+
+<span class="fc" id="L43">	public MovieController(Producer producer) {</span>
+<span class="fc" id="L44">		this.producer = producer;</span>
+<span class="fc" id="L45">	}</span>
+
+	@RolesAllowed(&quot;ROLE_ADMIN&quot;)
+	@PostMapping(value=&quot;/addMovie&quot;)
+    public ResponseEntity&lt;?&gt; addMovie(@RequestBody MovieInput movieInput){
+<span class="fc" id="L50">		Movie movie = new Movie(movieInput.getMovieName(),movieInput.getTheatres());</span>
+		try {
+<span class="fc" id="L52">			String message=movieService.addMovie(movie);</span>
+<span class="fc" id="L53">	        return new ResponseEntity&lt;&gt;(message, HttpStatus.OK);</span>
+		}
+<span class="fc" id="L55">		catch(Exception e) {</span>
+<span class="fc" id="L56">			return new ResponseEntity&lt;&gt;(&quot;Movie Already Exist&quot;, HttpStatus.BAD_REQUEST);</span>
+		}
+    }
+	
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;,&quot;ROLE_USER&quot;})
+	@GetMapping(value=&quot;/all&quot;)
+    public ResponseEntity&lt;?&gt; getAllMovie(){
+<span class="fc" id="L63">		List&lt;Movie&gt; movies=movieService.getAllMovies();</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		if(movies.size()==0) return new ResponseEntity&lt;&gt;(&quot;No Movies exists&quot;, HttpStatus.BAD_REQUEST);</span>
+<span class="fc" id="L65">		else return new ResponseEntity&lt;&gt;(movies, HttpStatus.OK);</span>
+    }
+	
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;,&quot;ROLE_USER&quot;})
+	@GetMapping(value=&quot;/search/{movieName}&quot;)
+    public ResponseEntity&lt;?&gt; getMovie(@PathVariable String movieName){	
+		try {
+<span class="fc" id="L72">			Movie movie=movieService.getMovie(movieName);</span>
+<span class="fc" id="L73">			return new ResponseEntity&lt;&gt;(movie, HttpStatus.OK);</span>
+		}
+<span class="fc" id="L75">		catch(MovieNotFoundException e) {</span>
+<span class="fc" id="L76">			return new ResponseEntity&lt;&gt;(&quot;No Movies exists&quot;, HttpStatus.BAD_REQUEST);</span>
+		}
+    }
+
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;,&quot;ROLE_USER&quot;})
+	@PostMapping(value=&quot;/{movieName}/add&quot;)
+    public ResponseEntity&lt;?&gt; bookMovie(@PathVariable String movieName,@RequestBody TicketInput ticketInput){
+<span class="fc" id="L83">		Ticket ticket = new Ticket(ticketInput.getTicketId(),ticketInput.getMovieName(),ticketInput.getTheatreName(),ticketInput.getNoOfTickets(),ticketInput.getSeatNumber());</span>
+		try {
+<span class="fc" id="L85">			Movie movie=movieService.getMovieByMovieNameAndTheatreName(movieName, ticket.getTheatreName());</span>
+<span class="pc" id="L86">			Optional&lt;Theatre&gt; result=movie.getTheatres().stream().filter(t-&gt;t.getTheatreName().equals(ticket.getTheatreName())).collect(Collectors.reducing((a, b) -&gt; null));</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">			if (result.isEmpty())</span>
+<span class="fc" id="L88">				 return new ResponseEntity&lt;&gt;(&quot;Theatre not allocated for this Movie&quot;, HttpStatus.BAD_REQUEST);;</span>
+<span class="fc" id="L89">			Theatre theatre=result.get();</span>
+<span class="fc" id="L90">			List&lt;Integer&gt; updatedSeatNumbers=theatre.getSeatNumbers();</span>
+<span class="fc" id="L91">			updatedSeatNumbers.removeAll(ticket.getSeatNumber());</span>
+<span class="fc" id="L92">			int newNoOfTickets=theatre.getNoOfTickets()-ticket.getNoOfTickets();</span>
+<span class="fc" id="L93">			String status=null;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">			if(newNoOfTickets&lt;=0) status=&quot;SOLD OUT&quot;;</span>
+<span class="fc" id="L95">			movieService.updateMovieTickets(movieName, ticket.getTheatreName(), newNoOfTickets,updatedSeatNumbers,status);</span>
+<span class="fc" id="L96">			int ticketId=ticketService.bookTicket(ticket);</span>
+<span class="fc" id="L97">			return new ResponseEntity&lt;&gt;(&quot;Ticket Id: &quot;+ticketId, HttpStatus.OK);</span>
+
+		}
+<span class="fc" id="L100">		catch(MovieNotFoundException e) {</span>
+<span class="fc" id="L101">			return new ResponseEntity&lt;&gt;(&quot;No Movies exists&quot;, HttpStatus.BAD_REQUEST);</span>
+		}
+		
+    }
+	
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;})
+	@PutMapping(value=&quot;/{movieName}/update/{theatreName}&quot;)
+    public ResponseEntity&lt;?&gt; updateMovieStatus(@PathVariable String movieName,@PathVariable String theatreName, @RequestBody String status){
+<span class="fc" id="L109">		producer.sendMessage(movieName, theatreName, status);</span>
+<span class="fc" id="L110">		return new ResponseEntity&lt;&gt;(&quot;Status Changed&quot;, HttpStatus.OK);</span>
+    }
+	
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;})
+	@GetMapping(value=&quot;/{movieName}/ticket/{theatreName}&quot;)
+    public ResponseEntity&lt;?&gt; getTicketDetails(@PathVariable String movieName,@PathVariable String theatreName) throws Exception{
+		
+<span class="fc" id="L117">		  TicketDetail request=new TicketDetail(movieName,theatreName,0,0) ;</span>
+<span class="fc" id="L118">		  request= producer.kafkaRequestReply(&quot;read-available-tickets&quot;,request);</span>
+<span class="fc" id="L119">		  request=producer.kafkaRequestReply(&quot;read-booked&quot;,request);</span>
+<span class="fc" id="L120">		  return new ResponseEntity&lt;&gt;(request, HttpStatus.OK);</span>
+    }
+	
+	@RolesAllowed({&quot;ROLE_ADMIN&quot;})
+	@DeleteMapping(value=&quot;/{movieName}/delete/{theatreName}&quot;)
+    public String deleteMovie(@PathVariable String movieName,@PathVariable String theatreName){
+<span class="fc" id="L126">		System.out.println(theatreName);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if(theatreName.equals(&quot;all&quot;)) {</span>
+<span class="fc" id="L128">			System.out.println(&quot;Delete All Called&quot;);</span>
+<span class="fc" id="L129">			movieService.deleteMovieById(movieName);</span>
+		}
+		else 
+<span class="fc" id="L132">			movieService.deleteMovieByTheatre(movieName, theatreName);</span>
+<span class="fc" id="L133">		return &quot;Deleted&quot;;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

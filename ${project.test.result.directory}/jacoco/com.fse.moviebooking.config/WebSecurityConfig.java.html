@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">moviebooking</a> &gt; <a href="index.source.html" class="el_package">com.fse.moviebooking.config</a> &gt; <span class="el_source">WebSecurityConfig.java</span></div><h1>WebSecurityConfig.java</h1><pre class="source lang-java linenums">package com.fse.moviebooking.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.context.ShutdownEndpoint;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity.IgnoredRequestConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.fse.moviebooking.MoviebookingApplication;
+import com.fse.moviebooking.service.UserCredentialServiceImpl;
+
+@SuppressWarnings(&quot;deprecation&quot;)
+
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true,jsr250Enabled = true)
+<span class="fc" id="L33">public class WebSecurityConfig extends WebSecurityConfigurerAdapter{</span>
+	
+	@Autowired
+	private UserCredentialServiceImpl userCredentialService;
+	
+	@Autowired
+	private JwtRequestFilter jwtRequestFilter;
+	
+	@Autowired
+	private UnauthorizedEntryPoint unauthorizedEntryPoint;
+	
+<span class="fc" id="L44">	private static final Logger log=LoggerFactory.getLogger(MoviebookingApplication.class);</span>
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		// TODO Auto-generated method stub
+<span class="fc" id="L49">		super.configure(auth);</span>
+		
+<span class="fc" id="L51">		auth.userDetailsService(userCredentialService);</span>
+<span class="fc" id="L52">	}	</span>
+
+	@Override
+	public void configure(WebSecurity web) throws Exception {
+		// TODO Auto-generated method stub
+<span class="fc" id="L57">		IgnoredRequestConfigurer antMatchers=web.ignoring().antMatchers(&quot;/register&quot;,&quot;/login&quot;,&quot;/forgot&quot;,&quot;/validate&quot;,&quot;/reset&quot;);</span>
+<span class="fc" id="L58">	}</span>
+
+	/**
+	 *
+	 */
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		// TODO Auto-generated method stub
+<span class="fc" id="L66">		http.authorizeRequests().requestMatchers(EndpointRequest.to(ShutdownEndpoint.class)).hasRole(&quot;ACTUATOR_ADMIN&quot;).requestMatchers(EndpointRequest.toAnyEndpoint())</span>
+<span class="fc" id="L67">                .permitAll()</span>
+<span class="fc" id="L68">            .requestMatchers(PathRequest.toStaticResources().atCommonLocations())</span>
+<span class="fc" id="L69">                .permitAll()</span>
+<span class="fc" id="L70">            .antMatchers(&quot;/&quot;)</span>
+<span class="fc" id="L71">                .permitAll()</span>
+<span class="fc" id="L72">            .antMatchers(&quot;/**&quot;)</span>
+<span class="fc" id="L73">                .authenticated()</span>
+<span class="fc" id="L74">        .and()</span>
+<span class="fc" id="L75">        .httpBasic();</span>
+<span class="fc" id="L76">		SessionManagementConfigurer&lt;HttpSecurity&gt; sessionCreationPolicy=http.csrf().disable().authorizeRequests().antMatchers(&quot;/login&quot;).permitAll().anyRequest().authenticated().and().exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint).and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);</span>
+<span class="fc" id="L77">		HttpSecurity addFilterBefore=http.addFilterBefore(jwtRequestFilter,UsernamePasswordAuthenticationFilter.class );</span>
+<span class="fc" id="L78">	}</span>
+
+	@Override
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		// TODO Auto-generated method stub
+<span class="fc" id="L84">		return super.authenticationManagerBean();</span>
+	}
+	
+	@Bean
+	public PasswordEncoder encoder() {
+<span class="fc" id="L89">		return NoOpPasswordEncoder.getInstance();</span>
+	}
+	
+	
+	
+	
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
