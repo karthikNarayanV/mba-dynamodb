@@ -1,6 +1,7 @@
 package com.fse.moviebooking.controller;
 
 import com.fse.moviebooking.main.input.UserInput;
+import com.fse.moviebooking.model.LoginReturn;
 import com.fse.moviebooking.model.PasswordCredential;
 import com.fse.moviebooking.model.Role;
 import com.fse.moviebooking.model.User;
@@ -18,7 +19,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +34,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+@CrossOrigin(origins = "*")
 @RestController
 public class UserController {
 
@@ -82,8 +87,14 @@ public class UserController {
 			try {
 				token = authenticate(user.getEmail(), user.getPassword());
 				log.debug("User {}", user.getEmail());
-	            log.info("End: Registration");
-	            return new ResponseEntity<>(token,HttpStatus.OK);
+				UserDetails userDetails=userCredentialService.loadUserByUsername(user.getEmail());
+	    		 Set<String> roles=new HashSet<>();
+	    		 for (GrantedAuthority authority : userDetails.getAuthorities()) {
+	    		      roles.add(authority.getAuthority());
+	    		    }
+	    		 LoginReturn result=new LoginReturn(token,roles);
+	    		 log.info("End: Login");
+	    	    return new ResponseEntity<>(result,HttpStatus.OK);
 			} catch (Exception e) {
 				log.error(e.getLocalizedMessage());
 	    		return new ResponseEntity<>("Not a valid user",HttpStatus.BAD_REQUEST);
@@ -119,13 +130,21 @@ public class UserController {
     	String token=null;
     	try {
     		 token=authenticate(credential.getEmail(),credential.getPassword());
+    		 UserDetails user=userCredentialService.loadUserByUsername(credential.getEmail());
+    		 Set<String> roles=new HashSet<>();
+    		 for (GrantedAuthority authority : user.getAuthorities()) {
+    		      roles.add(authority.getAuthority());
+    		    }
+    		 LoginReturn result=new LoginReturn(token,roles);
+    		 log.info("End: Login");
+    	    return new ResponseEntity<>(result,HttpStatus.OK);
+    		 
     	}
     	catch(Exception e) {
     		log.error(e.getLocalizedMessage());
     		return new ResponseEntity<>("Not a valid user",HttpStatus.BAD_REQUEST);
     	}
-    	log.info("End: Login");
-    	return new ResponseEntity<>(token,HttpStatus.OK);
+    	
     }
     
     @GetMapping(value="/validate")

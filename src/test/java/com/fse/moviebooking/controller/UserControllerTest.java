@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.fse.moviebooking.model.LoginReturn;
 import com.fse.moviebooking.model.PasswordCredential;
 import com.fse.moviebooking.model.UserCredential;
 
@@ -67,7 +67,9 @@ import com.fse.moviebooking.model.UserCredential;
 		 	      .accept(MediaType.APPLICATION_JSON))
 				 .andExpect(status().isOk())
 		       .andReturn();
-		String token="Bearer "+loginResult.getResponse().getContentAsString();
+		String content=loginResult.getResponse().getContentAsString();
+		LoginReturn returnResult=new ObjectMapper().readValue(content, LoginReturn.class);
+		String token="Bearer "+returnResult.getToken();
 		mockMvc.perform( MockMvcRequestBuilders
 		 	      .get("/validate").header("Authorization", token)
 		 	    

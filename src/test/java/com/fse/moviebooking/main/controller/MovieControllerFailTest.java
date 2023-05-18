@@ -30,6 +30,7 @@ import com.fse.moviebooking.main.model.Movie;
 import com.fse.moviebooking.main.model.Theatre;
 import com.fse.moviebooking.main.service.MovieServiceImpl;
 import com.fse.moviebooking.main.service.TicketServiceImpl;
+import com.fse.moviebooking.model.LoginReturn;
 import com.fse.moviebooking.model.UserCredential;
 
 @WithMockUser
@@ -58,7 +59,9 @@ import com.fse.moviebooking.model.UserCredential;
 		 	      .accept(MediaType.APPLICATION_JSON))
 				 .andExpect(status().isOk())
 		       .andReturn();
-    	token="Bearer "+result.getResponse().getContentAsString();;
+    	String content=result.getResponse().getContentAsString();
+		LoginReturn returnResult=new ObjectMapper().readValue(content, LoginReturn.class);
+		token="Bearer "+returnResult.getToken();
     }
     @Test
 	  void testAddMovieFail() throws Exception 
