@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.context.ShutdownEndpoint;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fse.moviebooking.service.UserCredentialServiceImpl;
 
@@ -51,16 +58,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	@Override
 	public void configure(WebSecurity web) throws Exception {
 		log.info("Start: Web Configure");
-		web.ignoring().antMatchers("/register","/login","/forgot","/validate","/reset");
+		web.ignoring().antMatchers("/register","/login","/forgot","/validate","/reset","/{movieName}/update/{theatreName}","/{movieName}/delete/{theatreName}");
+		
 		log.info("End: Web Configure");
 	}
+	
 
-	/**
-	 *
-	 */
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		log.info("Start: Http Configure");
+		http.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues());
 		http.authorizeRequests().requestMatchers(EndpointRequest.to(ShutdownEndpoint.class)).hasRole("ACTUATOR_ADMIN").requestMatchers(EndpointRequest.toAnyEndpoint())
                 .permitAll()
             .requestMatchers(PathRequest.toStaticResources().atCommonLocations())

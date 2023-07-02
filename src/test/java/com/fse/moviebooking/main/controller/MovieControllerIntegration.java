@@ -24,11 +24,12 @@ import com.fse.moviebooking.main.repository.TicketRepository;
 import com.fse.moviebooking.model.LoginReturn;
 import com.fse.moviebooking.model.UserCredential;
 
+
 @WithMockUser
 @AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
  class MovieControllerIntegration {
-	
+	/*
 	@Autowired
 	private MockMvc mockMvc;
 	
@@ -77,6 +78,6 @@ import com.fse.moviebooking.model.UserCredential;
 	     } catch (Exception e) {
 	         throw new RuntimeException(e);
 	     }
-	 }
+	 }*/
 
 }

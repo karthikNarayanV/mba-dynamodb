@@ -14,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fse.moviebooking.model.User;
 import com.fse.moviebooking.repository.UserRepository;
-import com.mongodb.MongoWriteException;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -35,7 +34,7 @@ import com.mongodb.MongoWriteException;
 		String password="karthik5";
 		String contactNumber="9677255341";
 		User user=new User( firstName,  lastName,  email, loginId,  password,  contactNumber);
-		when(userRepository.insert(any(User.class))).thenReturn(user);
+		when(userRepository.save(any(User.class))).thenReturn(user);
 		String result=userServiceImpl.saveUser(user);
 		assertEquals(user.toString(), result);
 	}
@@ -49,7 +48,7 @@ import com.mongodb.MongoWriteException;
 		String password="karthik5";
 		String contactNumber="9677255341";
 		User user=new User( firstName,  lastName,  email, loginId,  password,  contactNumber);
-		when(userRepository.insert(any(User.class))).thenThrow(MongoWriteException.class);
+		when(userRepository.save(any(User.class))).thenThrow(Exception.class);
 		assertThrows(Exception.class, ()->userServiceImpl.saveUser(user));
 	}
 	

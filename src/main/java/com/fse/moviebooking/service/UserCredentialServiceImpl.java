@@ -16,6 +16,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.fse.moviebooking.exception.UserNotFoundException;
 import com.fse.moviebooking.model.UserCredential;
 import com.fse.moviebooking.repository.UserCredentialRepository;
@@ -30,6 +37,14 @@ public class UserCredentialServiceImpl implements UserDetailsService,UserCredent
 	private JwtUtil jwtUtil;
 	
 	private  static final Logger log = LoggerFactory.getLogger(UserCredentialServiceImpl.class);
+	
+
+	private DynamoDBMapper dynamoDBMapper;
+	
+	@Autowired
+    private AmazonDynamoDB amazonDynamoDB;
+
+	
 
 	@Override
 	public String forgotPassword(String email) {
@@ -80,9 +95,15 @@ public class UserCredentialServiceImpl implements UserDetailsService,UserCredent
 	@Override
 	public String saveUser(UserCredential userCredential) {
 		log.info("Start: Save Credential");
-		userCredentialRepository.save(userCredential);
-		String result=userCredentialRepository.save(userCredential).toString();
-		log.info("End: Save Credential");
-		return result;
+		dynamoDBMapper = new DynamoDBMapper(amazonDynamoDB);
+        
+        CreateTableRequest tableRequest = dynamoDBMapper.generateCreateTableRequest(UserCredential.class);
+        tableRequest.setProvisionedThroughput(new ProvisionedThroughput(1L, 1L));
+        TableUtils.createTableIfNotExists(amazonDynamoDB, tableRequest);
+        DynamoDBMapper mapper=new DynamoDBMapper(amazonDynamoDB);
+        mapper.save(userCredential);
+        log.info("End: Save Credential");
+		return "Saved";
+		
 	}
 }

@@ -38,7 +38,7 @@ public class Producer {
 	public void sendMessage(String movieName, String theatreName,String status) {
 		log.info("Start: Send Message");
 		String topicName="set-status";
-		String message=movieName+":"+theatreName+":"+status;
+		String message=movieName+"#"+theatreName+"#"+status;
 		ListenableFuture<SendResult<String,String>> future = kafkaTemplate.send(topicName, message);
 		future.addCallback(new ListenableFutureCallback<SendResult<String,String>>() {
 

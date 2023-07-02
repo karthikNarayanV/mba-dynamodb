@@ -190,7 +190,7 @@ public class UserController {
     	log.info("Start: Reset Password");
     	
     	String message=userCredentialService.resetPassword(credential.getToken(), credential.getPassword());
-    	if(message.contains("false")) {
+    	if(message.contains("Invalid")) {
     		log.info("End: Forgot Password");
     		return new ResponseEntity<>(message,HttpStatus.BAD_REQUEST);
     	}

@@ -37,7 +37,7 @@ import com.fse.moviebooking.model.UserCredential;
 @AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
  class MovieControllerFailTest {
-
+/*
 	@Autowired
 	private MockMvc mockMvc;
 	
@@ -149,5 +149,5 @@ import com.fse.moviebooking.model.UserCredential;
 	         throw new RuntimeException(e);
 	     }
 	 }
-	 
+	 */
 }

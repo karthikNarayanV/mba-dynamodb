@@ -3,16 +3,27 @@ package com.fse.moviebooking.model;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "UserCredential")
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBFlattened;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel.DynamoDBAttributeType;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConvertedJson;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped;
+
+@DynamoDBTable(tableName = "UserCredential")
 public class UserCredential {
 	@Id
 	private String email;
 	private String password;
 	private String resetPasswordToken;
+	
 	private Set<Role> userRoles;
 
+	@DynamoDBHashKey(attributeName = "id")
 	public String getEmail() {
 		return email;
 	}
@@ -21,6 +32,7 @@ public class UserCredential {
 		this.email = email;
 	}
 
+	@DynamoDBAttribute
 	public String getPassword() {
 		return password;
 	}
@@ -29,6 +41,7 @@ public class UserCredential {
 		this.password = password;
 	}
 
+	@DynamoDBAttribute
 	public String getResetPasswordToken() {
 		return resetPasswordToken;
 	}
@@ -39,6 +52,8 @@ public class UserCredential {
 
 
 	
+	@DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.L)
+	@DynamoDBAttribute
 	public Set<Role> getUserRoles() {
 		return userRoles;
 	}

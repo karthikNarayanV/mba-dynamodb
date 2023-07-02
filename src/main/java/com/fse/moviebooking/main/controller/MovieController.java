@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,7 @@ import com.fse.moviebooking.main.model.TicketDetail;
 import com.fse.moviebooking.main.service.MovieServiceImpl;
 import com.fse.moviebooking.main.service.TicketServiceImpl;
 
+@CrossOrigin(allowedHeaders = "*", origins =  "*")
 @RestController
 public class MovieController {
 
@@ -118,6 +120,7 @@ public class MovieController {
 			int newNoOfTickets=theatre.getNoOfTickets()-ticket.getNoOfTickets();
 			String status=null;
 			if(newNoOfTickets<=0) status="SOLD OUT";
+			
 			movieService.updateMovieTickets(movieName, ticket.getTheatreName(), newNoOfTickets,updatedSeatNumbers,status);
 			int ticketId=ticketService.bookTicket(ticket);
 			log.info("End: Book Movie");

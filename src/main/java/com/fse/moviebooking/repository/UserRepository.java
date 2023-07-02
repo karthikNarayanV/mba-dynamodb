@@ -1,8 +1,11 @@
 package com.fse.moviebooking.repository;
 
 import com.fse.moviebooking.model.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface UserRepository extends MongoRepository<User,String>{
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
+
+@EnableScan
+public interface UserRepository extends CrudRepository<User,String>{
 	User findByEmail(String email);
 }
